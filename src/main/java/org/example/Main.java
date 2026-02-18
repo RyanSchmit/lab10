@@ -11,5 +11,8 @@ public class Main {
         producer.produceJob("5 * 3");
         producer.produceJob("10 / 2");
 
+        // Simulate processing jobs
+        worker.processNextJob();
+
     }
 }
