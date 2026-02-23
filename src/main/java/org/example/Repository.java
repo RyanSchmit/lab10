@@ -43,6 +43,7 @@ public class Repository extends PropertyChangeSupport {
     }
 
     // Retrieve and remove the next job from the repository
+    // AKA consume
     public String getNextJob() throws InterruptedException {
         full.acquire();
         String equation;

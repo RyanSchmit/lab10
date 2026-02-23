@@ -1,30 +1,40 @@
 package org.example;
 
 // AKA Consumer
-public class LocalWorker {
+public class LocalWorker implements Runnable {
     private final Repository repository;
 
     public LocalWorker(Repository repository) {
         this.repository = repository;
     }
 
-    public void processNextJob() throws InterruptedException {
-        String job = repository.getNextJob();
 
-        if (job == null || job.isBlank()) {
-            System.out.println("No jobs available to process.");
-            return;
-        }
-
+    @Override
+    public void run() {
         try {
-            double result = ExpressionEvaluator.eval(job);
-            System.out.println("Consumed job: " + job + " = " + result);
-        } catch (IllegalArgumentException ex) {
-            System.err.println("Failed to process job: " + job);
-            System.err.println("Parse error: " + ex.getMessage());
-        } catch (ArithmeticException ex) {
-            System.err.println("Failed to process job: " + job);
-            System.err.println("Math error: " + ex.getMessage());
+            while (true) {
+                String job = repository.getNextJob();
+
+                if (job == null || job.isBlank()) {
+                    System.out.println("No jobs available to process.");
+                    return;
+                }
+
+                try {
+                    double result = ExpressionEvaluator.eval(job);
+                    System.out.println("Consumed job: " + job + " = " + result);
+                } catch (IllegalArgumentException ex) {
+                    System.err.println("Failed to process job: " + job);
+                    System.err.println("Parse error: " + ex.getMessage());
+                } catch (ArithmeticException ex) {
+                    System.err.println("Failed to process job: " + job);
+                    System.err.println("Math error: " + ex.getMessage());
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.out.println("Worker thread interrupted. Exiting.");
+            }
         }
-    }
+
 }

@@ -1,6 +1,8 @@
 package org.example;
 
-public class Producer {
+import java.util.ArrayList;
+
+public class Producer implements Runnable {
     private final Repository repository;
 
     public Producer(Repository repository) {
@@ -11,5 +13,26 @@ public class Producer {
     public void produceJob(String equation) throws InterruptedException {
         repository.produces(equation);
         System.out.println("Produced job: " + equation);
+    }
+
+    @Override
+    public void run() {
+        // Where should equations be stored
+        ArrayList<String> equations = new ArrayList<>();
+        equations.add("5 * 3");
+        equations.add("10 / 2");
+        equations.add("5 + 13");
+
+        try {
+            while (true) {
+                for (String equation : equations) {
+                    produceJob(equation);
+                    Thread.sleep(1000); // Simulate time taken to produce a job
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.out.println("Producer was interrupted");
+        }
     }
 }
