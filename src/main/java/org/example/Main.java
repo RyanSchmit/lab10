@@ -2,7 +2,7 @@ package org.example;
 
 public class Main {
     public static void main(String[] args) {
-        Repository repository = new Repository();
+        Repository repository = Repository.getInstance();
         Producer producer = new Producer(repository);
         LocalWorker worker = new LocalWorker(repository);
 

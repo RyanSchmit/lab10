@@ -2,29 +2,32 @@ package org.example;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.beans.PropertyChangeSupport;
 
-public class Repository {
-    private final List<String> jobs;
+public class Repository extends PropertyChangeSupport {
+    private final List<String> jobs = new ArrayList<>();
+    private static final Repository instance = new Repository();
 
-    public Repository() {
-        this.jobs = new ArrayList<>();
+    private Repository() {
+       super(new Object());
     }
 
-    // Add a new job (math equation) to the repository
+    public static Repository getInstance() {
+        return instance;
+    }
+
+    // Add a new job to the repository
     public void addJob(String equation) {
         jobs.add(equation);
+        firePropertyChange("jobs", null, equation);
     }
 
     // Retrieve and remove the next job from the repository
     public String getNextJob() {
         if (!jobs.isEmpty()) {
+            // Should I add firePropertyChange here?
             return jobs.remove(0);
         }
         return null; // No jobs available
-    }
-
-    // Get the total number of jobs in the repository
-    public int getJobCount() {
-        return jobs.size();
     }
 }
