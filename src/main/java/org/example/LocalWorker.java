@@ -1,5 +1,6 @@
 package org.example;
 
+// AKA Consumer
 public class LocalWorker {
     private final Repository repository;
 
@@ -7,7 +8,7 @@ public class LocalWorker {
         this.repository = repository;
     }
 
-    public void processNextJob() {
+    public void processNextJob() throws InterruptedException {
         String job = repository.getNextJob();
 
         if (job == null || job.isBlank()) {
@@ -17,7 +18,7 @@ public class LocalWorker {
 
         try {
             double result = ExpressionEvaluator.eval(job);
-            System.out.println("Processed job: " + job + " = " + result);
+            System.out.println("Consumed job: " + job + " = " + result);
         } catch (IllegalArgumentException ex) {
             System.err.println("Failed to process job: " + job);
             System.err.println("Parse error: " + ex.getMessage());

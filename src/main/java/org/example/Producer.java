@@ -8,8 +8,8 @@ public class Producer {
     }
 
     // Method to produce and add jobs to the repository
-    public void produceJob(String equation) {
-        repository.addJob(equation);
+    public void produceJob(String equation) throws InterruptedException {
+        repository.produces(equation);
         System.out.println("Produced job: " + equation);
     }
 }
