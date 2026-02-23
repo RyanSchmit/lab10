@@ -13,6 +13,7 @@ public class Main {
 
         // Simulate processing jobs
         worker.processNextJob();
-
+        worker.processNextJob();
+        worker.processNextJob();
     }
 }
