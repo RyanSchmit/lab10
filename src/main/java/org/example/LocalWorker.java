@@ -16,13 +16,13 @@ public class LocalWorker implements Runnable {
                 String job = repository.getNextJob();
 
                 if (job == null || job.isBlank()) {
-                    System.out.println("No jobs available to process.");
+                    //System.out.println("No jobs available to process.");
                     return;
                 }
 
                 try {
                     double result = ExpressionEvaluator.eval(job);
-                    System.out.println("Consumed job: " + job + " = " + result);
+                    //System.out.println("Consumed job: " + job + " = " + result);
                 } catch (IllegalArgumentException ex) {
                     System.err.println("Failed to process job: " + job);
                     System.err.println("Parse error: " + ex.getMessage());

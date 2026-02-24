@@ -35,7 +35,7 @@ public class Repository extends PropertyChangeSupport {
         try {
             jobs.add(equation);
             firePropertyChange("jobs", null, equation);
-            System.out.println("Produced: " + equation + " | Current jobs in repository: " + jobs.size());
+            //System.out.println("Produced: " + equation + " | Current jobs in repository: " + jobs.size());
         } finally {
             lock.unlock();
         }
@@ -50,7 +50,7 @@ public class Repository extends PropertyChangeSupport {
         lock.lock();
         try {
             equation = jobs.remove();
-            System.out.println("Consumed job: " + equation);
+            //System.out.println("Consumed job: " + equation);
         } finally {
             lock.unlock();
         }
