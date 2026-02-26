@@ -2,6 +2,7 @@ package org.example;
 
 import org.eclipse.paho.client.mqttv3.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -17,10 +18,15 @@ public class Outsourcer
 
     // Job ID management
     private int jobCount = -1;
+    public int workerCount = -1;
     private String generateJobId()
     {
         jobCount++;
         return "job-" + jobCount;
+    }
+    private String generateWorkerId(){
+        workerCount++;
+        return "worker-" + workerCount;
     }
 
     private MqttClient client;
@@ -35,7 +41,20 @@ public class Outsourcer
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
                 String payload = new String(message.getPayload());
-                if (topic.equals("job/request"))
+                if (topic.equals("worker/register")) {
+
+                    String tempId = payload;
+                    String workerId = generateWorkerId();
+
+                    String ackTopic = "worker/register/ack/" + tempId;
+
+                    client.publish(ackTopic,
+                            new MqttMessage(workerId.getBytes(StandardCharsets.UTF_8)));
+
+                    System.out.println("Registered worker: " + workerId);
+                }
+
+                else if (topic.equals("job/request"))
                 {
                     String[] parts = payload.split("\\|");
                     String workerID = parts[0];
@@ -47,9 +66,10 @@ public class Outsourcer
                     String workerID = topic.substring(11);
                     String[] parts = payload.split("\\|");
                     String jobId = parts[0];
+                    String result = parts[1];
                     lock.lock();
                     inFlight.remove(jobId);
-                    System.out.println("Outsourcer: Job Completed: " + jobId + " by " + workerID);
+                    System.out.println("Outsourcer: Job Completed: " + jobId + " by " + workerID + " result =" + result);
                     lock.unlock();
                 }
             }
@@ -61,7 +81,8 @@ public class Outsourcer
         });
         client.connect();
         client.subscribe("job/request", 2); // Listen to job requests
-        client.subscribe("job/result", 2); // Listen for worker results
+        client.subscribe("job/result/+", 2); // Listen for worker results
+        client.subscribe("worker/register", 2);
     }
 
     public void addJob(String equation)

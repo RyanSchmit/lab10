@@ -50,6 +50,7 @@ public class Repository extends PropertyChangeSupport {
         lock.lock();
         try {
             equation = jobs.remove();
+            //probably should remove job when result is recieved not when the job is taken no? atleast for outsourcing
             //System.out.println("Consumed job: " + equation);
         } finally {
             lock.unlock();

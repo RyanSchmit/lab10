@@ -3,25 +3,21 @@ package org.example;
 import java.util.ArrayList;
 
 public class Producer implements Runnable {
-    //private final Repository repository;
+    private final Repository repository;
     private final Outsourcer outsourcer;
 
-    //public Producer(Repository repository) {
-    //    this.repository = repository;
-    //}
-
-    public Producer(Outsourcer outsourcer)
-    {
+    public Producer(Repository repository, Outsourcer outsourcer) {
+        this.repository = repository;
         this.outsourcer = outsourcer;
     }
 
     // Method to produce and add jobs to the repository
     public void produceJob(String equation) throws InterruptedException {
-        //repository.produces(equation);
+        repository.produces(equation);
 
-        // Add jobs to outsourcer instead
-        outsourcer.addJob(equation);
-        //System.out.println("Produced job: " + equation);
+        if (outsourcer != null) {
+            outsourcer.addJob(equation);
+        }
     }
 
     @Override
@@ -44,4 +40,5 @@ public class Producer implements Runnable {
             System.out.println("Producer was interrupted");
         }
     }
+
 }
