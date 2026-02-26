@@ -26,7 +26,15 @@ public class ProducerNew implements Runnable {
         equations.add("10 / 2");
         equations.add("5 + 13");
 
+
         try {
+            //make some really fast so that there are more in the repository, otherwise outsourcer only can
+            //dispatch 1 at a time despite capacity
+            for(int i = 0; i < 4; i++) {
+                for (String equation : equations) {
+                    produceJob(equation);
+                }
+            }
             while (true) {
                 for (String equation : equations) {
                     produceJob(equation);

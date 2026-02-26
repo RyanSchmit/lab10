@@ -3,7 +3,11 @@ package org.example;
 import org.eclipse.paho.client.mqttv3.*;
 
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class RemoteWorker implements Runnable {
 
@@ -11,7 +15,7 @@ public class RemoteWorker implements Runnable {
     private final String tempId;
     private String workerId;
     private final int capacity;
-
+    private BlockingQueue<Job> jobs = new LinkedBlockingQueue<>(); //jobs to do
     public RemoteWorker(String brokerUrl, int capacity) throws MqttException {
 
         this.tempId = "temp-" + UUID.randomUUID();
@@ -50,8 +54,9 @@ public class RemoteWorker implements Runnable {
                     String jobId = parts[0];
                     String equation = parts[1];
 
-                    double result = ExpressionEvaluator.eval(equation);
-
+                    jobs.add(new Job(jobId, equation));
+                    //double result = ExpressionEvaluator.eval(equation);
+/*
                     String resultPayload = jobId + "|" + result;
                     String resultTopic = "job/result/" + workerId;
 
@@ -60,7 +65,7 @@ public class RemoteWorker implements Runnable {
 
                     System.out.println(workerId + " completed " + jobId);
 
-                    requestWork();
+                    requestWork();*/
                 }
             }
 
@@ -81,10 +86,34 @@ public class RemoteWorker implements Runnable {
 
             System.out.println("Worker sent registration request.");
 
-        } catch (Exception e) {
-            e.printStackTrace();
+            while (true) {
+                // This line BLOCKS if queue is empty
+                Job nextJob = jobs.take();
+
+                String equation = nextJob.getEquation();
+                String jobId = nextJob.getJobId();
+
+                double result = ExpressionEvaluator.eval(equation);
+
+                String resultPayload = jobId + "|" + result;
+                String resultTopic = "job/result/" + workerId;
+
+                client.publish(resultTopic,
+                        new MqttMessage(resultPayload.getBytes(StandardCharsets.UTF_8)));
+
+                System.out.println(workerId + " completed " + jobId);
+
+                // If queue now empty, request more work
+                if (jobs.isEmpty()) {
+                    requestWork();
+                }
+            }
+
+            } catch(Exception e){
+                e.printStackTrace();
+            }
         }
-    }
+
 
     private void requestWork() throws MqttException {
 

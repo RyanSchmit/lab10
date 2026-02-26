@@ -9,7 +9,7 @@ public class Main {
         Repository repository = Repository.getInstance();
 
 
-        Thread remoteWorker = new Thread(new RemoteWorker(BROKERURL, 1));
+        Thread remoteWorker = new Thread(new RemoteWorker(BROKERURL, 3));
         Thread producerNew = new Thread(new ProducerNew(repository));
         Thread worker = new Thread(new LocalWorker(repository));
 
