@@ -2,21 +2,18 @@ package org.example;
 
 import java.util.ArrayList;
 
-public class Producer implements Runnable {
+public class ProducerNew implements Runnable {
     private final Repository repository;
-    private final Outsourcer outsourcer;
 
-    public Producer(Repository repository, Outsourcer outsourcer) {
+    public ProducerNew(Repository repository) {
         this.repository = repository;
-        this.outsourcer = outsourcer;
+
     }
 
     // Method to produce and add jobs to the repository
     public void produceJob(String equation) throws InterruptedException {
         repository.produces(equation);
-        if (outsourcer != null) {
-            outsourcer.addJob(equation);
-        }
+
 
 
     }

@@ -10,7 +10,7 @@ import java.util.Queue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Outsourcer
+public class OutsourcerNew implements Runnable
 {
     private Queue<String> jobs = new LinkedList<>(); // Unassigned Jobs
     private Map<String, String> inFlight = new HashMap<>(); // Currently processing jobs, jobID, WorkerID
@@ -30,7 +30,7 @@ public class Outsourcer
     }
 
     private MqttClient client;
-    public Outsourcer(String brokerUrl) throws MqttException {
+    public OutsourcerNew(String brokerUrl) throws MqttException {
         client = new MqttClient(brokerUrl, MqttClient.generateClientId());
         client.setCallback(new MqttCallback() {
             @Override
@@ -100,12 +100,9 @@ public class Outsourcer
     {
         lock.lock();
         try {
-            while (capacity > 0 && !jobs.isEmpty()) {
+            while (capacity > 0) {
 
-
-
-                String equation = jobs.poll();
-
+                String equation = repository.getNextJob();
                 String jobId = generateJobId();
                 inFlight.put(jobId, workerID);
 
@@ -121,15 +118,15 @@ public class Outsourcer
 
                 capacity--;
             }
-            } catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-            finally
-            {
-                lock.unlock();
-            }
+        } catch (Exception e)
+        {
+            e.printStackTrace();
         }
+        finally
+        {
+            lock.unlock();
+        }
+    }
 
     public void scheduleReassignTask()
     {
@@ -150,4 +147,9 @@ public class Outsourcer
         });
         thread.start();
     }
+
+    @Override
+    public void run() {
+
     }
+}

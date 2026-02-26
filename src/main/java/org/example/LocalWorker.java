@@ -22,6 +22,7 @@ public class LocalWorker implements Runnable {
                 try {
                     double result = ExpressionEvaluator.eval(job);
                     System.out.println("Local Worker Consumed job: " + job + " = " + result);
+
                 } catch (IllegalArgumentException ex) {
                     System.err.println("Failed to process job: " + job);
                     System.err.println("Parse error: " + ex.getMessage());
