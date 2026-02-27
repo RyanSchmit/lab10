@@ -4,19 +4,16 @@ import java.util.ArrayList;
 
 public class Producer implements Runnable {
     private final Repository repository;
-    private final Outsourcer outsourcer;
 
-    public Producer(Repository repository, Outsourcer outsourcer) {
+    public Producer(Repository repository) {
         this.repository = repository;
-        this.outsourcer = outsourcer;
+
     }
 
     // Method to produce and add jobs to the repository
     public void produceJob(String equation) throws InterruptedException {
         repository.produces(equation);
-        if (outsourcer != null) {
-            outsourcer.addJob(equation);
-        }
+
 
 
     }
@@ -29,11 +26,18 @@ public class Producer implements Runnable {
         equations.add("10 / 2");
         equations.add("5 + 13");
 
+
         try {
+            //make some really fast so that there are more in the repository, otherwise outsourcer only can
+            //dispatch 1 at a time despite capacity
+            for(int i = 0; i < 4; i++) {
+                for (String equation : equations) {
+                    produceJob(equation);
+                }
+            }
             while (true) {
                 for (String equation : equations) {
                     produceJob(equation);
-                    Thread.sleep(1000); // Simulate time taken to produce a job
                 }
             }
         } catch (InterruptedException e) {

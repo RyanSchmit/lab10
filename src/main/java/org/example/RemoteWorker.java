@@ -7,7 +7,9 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class RemoteWorker implements Runnable {
 
@@ -15,6 +17,8 @@ public class RemoteWorker implements Runnable {
     private final String tempId;
     private String workerId;
     private final int capacity;
+    private final CountDownLatch registrationLatch = new CountDownLatch(1);
+    private boolean registered = false;
     private BlockingQueue<Job> jobs = new LinkedBlockingQueue<>(); //jobs to do
     public RemoteWorker(String brokerUrl, int capacity) throws MqttException {
 
@@ -39,11 +43,12 @@ public class RemoteWorker implements Runnable {
                 if (topic.equals("worker/register/ack/" + tempId)) {
 
                     workerId = payload;
-                    System.out.println("Assigned worker ID: " + workerId);
+                    System.out.println("worker of tempid" + tempId + "recieved workerId: " + workerId);
 
                     client.subscribe("job/assign/" + workerId, 2);
-
-                    requestWork();
+                    client.unsubscribe("worker/register/ack/" + tempId);
+                    registrationLatch.countDown();
+                    registered = true;
                     return;
                 }
 
@@ -55,17 +60,7 @@ public class RemoteWorker implements Runnable {
                     String equation = parts[1];
 
                     jobs.add(new Job(jobId, equation));
-                    //double result = ExpressionEvaluator.eval(equation);
-/*
-                    String resultPayload = jobId + "|" + result;
-                    String resultTopic = "job/result/" + workerId;
 
-                    client.publish(resultTopic,
-                            new MqttMessage(resultPayload.getBytes(StandardCharsets.UTF_8)));
-
-                    System.out.println(workerId + " completed " + jobId);
-
-                    requestWork();*/
                 }
             }
 
@@ -84,12 +79,25 @@ public class RemoteWorker implements Runnable {
             client.publish("worker/register",
                     new MqttMessage(tempId.getBytes(StandardCharsets.UTF_8)));
 
-            System.out.println("Worker sent registration request.");
-
+            System.out.println("Worker" + tempId + " sent registration request.");
+            registrationLatch.await();
+            System.out.println("worker " + workerId + "Fully registered");
             while (true) {
+                Job nextJob = jobs.poll(2, TimeUnit.SECONDS);
+
+                if (nextJob == null) {
+                    requestWork();
+                    continue;
+                }
+                /*
+                // If queue now empty, request more work
+                if (jobs.isEmpty()) {
+                    Thread.sleep(1000);
+                    requestWork();
+                }
                 // This line BLOCKS if queue is empty
                 Job nextJob = jobs.take();
-
+*/
                 String equation = nextJob.getEquation();
                 String jobId = nextJob.getJobId();
 
@@ -103,10 +111,7 @@ public class RemoteWorker implements Runnable {
 
                 System.out.println(workerId + " completed " + jobId);
 
-                // If queue now empty, request more work
-                if (jobs.isEmpty()) {
-                    requestWork();
-                }
+
             }
 
             } catch(Exception e){

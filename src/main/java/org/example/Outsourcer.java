@@ -10,7 +10,7 @@ import java.util.Queue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Outsourcer
+public class Outsourcer implements Runnable
 {
     private Queue<String> jobs = new LinkedList<>(); // Unassigned Jobs
     private Map<String, String> inFlight = new HashMap<>(); // Currently processing jobs, jobID, WorkerID
@@ -85,29 +85,19 @@ public class Outsourcer
         client.subscribe("worker/register", 2);
     }
 
-    public void addJob(String equation)
-    {
-        lock.lock();
-        try {
-            jobs.add(equation);
-            System.out.println("Outsourcer: Job Added: " + equation);
-        } finally {
-            lock.unlock();
-        }
-    }
 
     public void handleJobRequest(String workerID, int capacity)
     {
         lock.lock();
         try {
-            while (capacity > 0 && !jobs.isEmpty()) {
+            while (capacity > 0) {
 
-
-
-                String equation = jobs.poll();
-
+                String equation = repository.getNextJob();
+                //String equation = repository.tryGetNextJob();
+                if (equation == null) break;
                 String jobId = generateJobId();
                 inFlight.put(jobId, workerID);
+
 
                 String topic = "job/assign/" + workerID;
                 String payload = jobId + "|" + equation;
@@ -121,15 +111,15 @@ public class Outsourcer
 
                 capacity--;
             }
-            } catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-            finally
-            {
-                lock.unlock();
-            }
+        } catch (Exception e)
+        {
+            e.printStackTrace();
         }
+        finally
+        {
+            lock.unlock();
+        }
+    }
 
     public void scheduleReassignTask()
     {
@@ -141,6 +131,7 @@ public class Outsourcer
                     lock.lock();
                     if (!inFlight.isEmpty())
                         System.out.println("Currently in-flight: " + inFlight);
+                    //TODO: reassign
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } finally {
@@ -150,4 +141,9 @@ public class Outsourcer
         });
         thread.start();
     }
+
+    @Override
+    public void run() {
+
     }
+}

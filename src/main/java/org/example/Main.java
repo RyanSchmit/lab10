@@ -5,18 +5,23 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 public class Main {
     public static void main(String[] args) throws InterruptedException, MqttException {
         final String BROKERURL = "tcp://broker.emqx.io:1883";
-        OutsourcerNew outsourcer = new OutsourcerNew(BROKERURL);
+        Outsourcer outsourcer = new Outsourcer(BROKERURL);
         Repository repository = Repository.getInstance();
 
 
         Thread remoteWorker = new Thread(new RemoteWorker(BROKERURL, 3));
-        Thread producerNew = new Thread(new ProducerNew(repository));
+        Thread remoteWorkerTwo = new Thread(new RemoteWorker(BROKERURL, 3));
+        Thread remoteWorkerThree = new Thread(new RemoteWorker(BROKERURL, 3));
+
+        Thread producerNew = new Thread(new Producer(repository));
         Thread worker = new Thread(new LocalWorker(repository));
 
 
         producerNew.start();
         worker.start();
         remoteWorker.start();
+        remoteWorkerTwo.start();
+        remoteWorkerThree.start();
         outsourcer.scheduleReassignTask();
     }
 }

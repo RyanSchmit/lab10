@@ -57,4 +57,17 @@ public class Repository extends PropertyChangeSupport {
         empty.release();
         return equation;
     }
+    public String tryGetNextJob() {
+        if (!full.tryAcquire()) {
+            return null;
+        }
+
+        lock.lock();
+        try {
+            return jobs.remove();
+        } finally {
+            lock.unlock();
+            empty.release();
+        }
+    }
 }

@@ -14,7 +14,7 @@ public class LocalWorker implements Runnable {
         try {
             while (true) {
                 //Slow down so remote worker gets some
-                Thread.sleep(1000);
+                Thread.sleep(5000);
                 String job = repository.getNextJob();
                 if (job == null || job.isBlank()) {
                     System.out.println("No jobs available to process.");
